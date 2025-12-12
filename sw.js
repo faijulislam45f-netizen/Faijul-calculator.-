@@ -1,10 +1,11 @@
-const CACHE_NAME = 'faijul-calc-v1';
+const CACHE_NAME = 'faijul-calc-v2';
+
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.webmanifest',
-  '/icon-192.png',
-  '/icon-512.png'
+  './',
+  './index.html',
+  './manifest.webmanifest',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 self.addEventListener('install', event => {
