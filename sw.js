@@ -1,3 +1,4 @@
+
 const CACHE_NAME = 'faijul-calc-v2';
 
 const ASSETS = [
