@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#020617" />
+  <title>Faijul Calc</title>
+
+  <!-- PWA manifest -->
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" href="/icon-192.png" />
+
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+      background:linear-gradient(135deg,#020617 0%,#1e3a8a 50%,#020617 100%);
+      min-height:100vh;display:flex;align-items:center;justify-content:center;
+      padding:1rem;color:#e5e7eb;user-select:none;-webkit-user-select:none
+    }
+    .container{width:100%;max-width:28rem}
+    .title{
+      font-size:2.5rem;font-weight:700;text-align:center;margin-bottom:2rem;
+      background:linear-gradient(to right,#22d3ee,#3b82f6);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent
+    }
+    .calculator{
+      background:rgba(15,23,42,.85);backdrop-filter:blur(20px);
+      border-radius:1.5rem;padding:1.5rem;border:1px solid #475569;
+      box-shadow:0 25px 50px -12px rgba(0,0,0,.5)
+    }
+    .display{
+      background:rgba(2,6,23,.6);border-radius:1rem;padding:1.5rem;margin-bottom:1.5rem;
+      border:1px solid #1e293b;min-height:80px;display:flex;align-items:center;justify-content:flex-end
+    }
+    .display-text{font-size:3rem;font-weight:300;word-break:break-all;line-height:1.2}
+    .keypad{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem}
+    button{
+      font-size:1.5rem;font-weight:500;color:#e5e7eb;border:none;border-radius:.75rem;
+      padding:1.5rem 0;cursor:pointer;transition:.15s all;
+      box-shadow:0 4px 6px -1px rgba(0,0,0,.3);-webkit-tap-highlight-color:transparent;
+      background:#0f172a
+    }
+    button:active{transform:scale(.95)}
+    .btn-operator{background:#1d4ed8}
+    .btn-clear{background:#b91c1c}
+    .btn-equal{background:#15803d}
+    .btn-wide{grid-column:span 2}
+    .install-prompt{
+      text-align:center;margin-top:1.5rem;padding:1rem;border-radius:.75rem;
+      border:1px solid rgba(59,130,246,.4);background:rgba(59,130,246,.08);display:none;
+      font-size:.9rem;color:#9ca3af
+    }
+    .install-prompt.show{display:block}
+    .install-btn{
+      margin-top:.5rem;background:#3b82f6;color:#fff;border:none;
+      padding:.6rem 1.4rem;border-radius:.5rem;font-weight:600;cursor:pointer
+    }
+    .footer{text-align:center;margin-top:1.5rem;font-size:.85rem;color:#94a3b8}
+    @media(max-width:640px){
+      .display-text{font-size:2.4rem}
+      button{padding:1.25rem 0;font-size:1.25rem}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="title">🔢 Faijul Calc</h1>
+
+    <div class="calculator">
+      <div class="display">
+        <div class="display-text" id="display">0</div>
+      </div>
+
+      <div class="keypad">
+        <button class="btn-clear" onclick="handleAC()">AC</button>
+        <button class="btn-clear" onclick="handleBack()">⌫</button>
+        <button class="btn-operator" onclick="press('%')">%</button>
+        <button class="btn-operator" onclick="press('÷')">÷</button>
+
+        <button onclick="press('7')">7</button>
+        <button onclick="press('8')">8</button>
+        <button onclick="press('9')">9</button>
+        <button class="btn-operator" onclick="press('×')">×</button>
+
+        <button onclick="press('4')">4</button>
+        <button onclick="press('5')">5</button>
+        <button onclick="press('6')">6</button>
+        <button class="btn-operator" onclick="press('−')">−</button>
+
+        <button onclick="press('1')">1</button>
+        <button onclick="press('2')">2</button>
+        <button onclick="press('3')">3</button>
+        <button class="btn-operator" onclick="press('+')">+</button>
+
+        <button class="btn-wide" onclick="press('0')">0</button>
+        <button onclick="press('.')">.</button>
+        <button class="btn-equal" onclick="equal()">=</button>
+      </div>
+    </div>
+
+    <div class="install-prompt" id="installPrompt">
+      <div>📱 Install this calculator and use it offline.</div>
+      <button class="install-btn" onclick="installApp()">Install App</button>
+    </div>
+
+    <div class="footer">Built by Faijul • Works offline</div>
+  </div>
+
+  <script>
+    let expr = '';
+    const display = document.getElementById('display');
+    let deferredPrompt = null;
+
+    // Install prompt
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installPrompt').classList.add('show');
+    });
+
+    function installApp() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(() => {
+        deferredPrompt = null;
+        document.getElementById('installPrompt').classList.remove('show');
+      });
+    }
+
+    // Calculator
+    function press(ch) {
+      expr += ch;
+      display.textContent = expr || '0';
+    }
+    function handleAC() {
+      expr = '';
+      display.textContent = '0';
+    }
+    function handleBack() {
+      expr = expr.slice(0, -1);
+      display.textContent = expr || '0';
+    }
+    function equal() {
+      if (!expr) return;
+      try {
+        const safe = expr
+          .replace(/×/g, '*')
+          .replace(/÷/g, '/')
+          .replace(/−/g, '-')
+          .replace(/%/g, '/100');
+        const result = eval(safe);
+        const r = Math.round(result * 1e6) / 1e6;
+        expr = String(r);
+        display.textContent = expr;
+      } catch {
+        display.textContent = 'Error';
+        expr = '';
+      }
+    }
+
+    // Keyboard support
+    document.addEventListener('keydown', e => {
+      if (e.key >= '0' && e.key <= '9') press(e.key);
+      else if (e.key === '.') press('.');
+      else if (e.key === '+') press('+');
+      else if (e.key === '-') press('−');
+      else if (e.key === '*') press('×');
+      else if (e.key === '/') { e.preventDefault(); press('÷'); }
+      else if (e.key === '%') press('%');
+      else if (e.key === 'Enter' || e.key === '=') equal();
+      else if (e.key === 'Escape') handleAC();
+      else if (e.key === 'Backspace') handleBack();
+    });
+
+    // Service worker register
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js');
+      });
+    }
+  </script>
+</body>
+</html>
